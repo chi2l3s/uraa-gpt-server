@@ -1,17 +1,22 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 import g4f
 
 app = FastAPI()
 
-# Разрешаем CORS для всех источников
+# Разрешенные источники (Origin)
+origins = [
+    "https://uraa-gpt.vercel.app",  # Ваш фронтенд-домен
+    "http://localhost:3000"  # Если вы тестируете локально
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Разрешаем доступ с любых источников
+    allow_origins=origins,  # Разрешаемые домены
     allow_credentials=True,
-    allow_methods=["*"],  # Разрешаем любые методы (GET, POST и т.д.)
-    allow_headers=["*"],  # Разрешаем любые заголовки
+    allow_methods=["*"],  # Разрешаемые методы (GET, POST и т.д.)
+    allow_headers=["*"],  # Разрешаемые заголовки
 )
 
 class Message(BaseModel):
@@ -21,14 +26,14 @@ class Message(BaseModel):
 async def chat_with_gpt(message: Message):
     response = g4f.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": message.message}],  # Используем пользовательское сообщение
+        messages=[{"role": "user", "content": "Hello"}],
         stream=True,
     )
-    full_message = ''
+    message = ''
     for m in response:
-        full_message += m
+        message += m
 
-    return {"reply": full_message}  # Возвращаем ответ в формате JSON
+    return {"response": message}
 
 if __name__ == "__main__":
     import uvicorn
