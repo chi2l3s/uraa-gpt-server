@@ -26,7 +26,7 @@ class Message(BaseModel):
 async def chat_with_gpt(message: Message):
     response = g4f.ChatCompletion.create(
         model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": "Hello"}],
+        messages=[{"role": "user", "content": message.message}],
         stream=True,
     )
     message = ''
