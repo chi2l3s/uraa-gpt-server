@@ -7,7 +7,7 @@ app = FastAPI()
 
 # Разрешенные источники (Origin)
 origins = [
-    "https://uraa-gpt.vercel.app",  # Ваш фронтенд-домен
+    "https://uraa-gpt.vercel.app/",  # Ваш фронтенд-домен
     "http://localhost:3000"  # Если вы тестируете локально
 ]
 
