@@ -1,36 +1,28 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import g4f
 
-app = FastAPI()
+app = Flask(__name__)
+CORS(app)
 
-# Разрешенные источники (Origin)
-origins = [
-    "https://uraa-gpt.vercel.app/",  # Ваш фронтенд-домен
-    "http://localhost:3000"  # Если вы тестируете локально
-]
+@app.route('/chat', methods=['POST'])
+def chat():
+    data = request.json
+    user_message = data.get('message')
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,  # Разрешаемые домены
-    allow_credentials=True,
-    allow_methods=["*"],  # Разрешаемые методы (GET, POST и т.д.)
-    allow_headers=["*"],  # Разрешаемые заголовки
-)
+    if not user_message:
+        return jsonify({'error': 'Сообщение не получено'}), 400
 
-class Message(BaseModel):
-    message: str
+    try:
+        response = g4f.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_message}]
+        )
+        
+        msg = response.choices[0].message['content']  # Предположим, что это корректный способ извлечь ответ
+        return jsonify({'response': msg}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-@app.post("/chat")
-async def chat_with_gpt(message: Message):
-    response = g4f.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": message.message}],
-        stream=True,
-    )
-    message = ''
-    for m in response:
-        message += m
-
-    return {"response": message}
+if __name__ == '__main__':
+    app.run()
